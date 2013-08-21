@@ -1,0 +1,2 @@
+emerge --update --deep --with-bdeps=y  --pretend world
+
