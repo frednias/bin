@@ -1,0 +1,58 @@
+#!/bin/bash
+
+cd /usr/src
+newver="$(readlink linux | cut -d- -f2-)"
+curver="$(uname -r)"
+oldver="$(readlink /boot/kernel.old | cut -d- -f2-)"
+
+echo "Build kernel :"
+echo " New version : $newver"
+echo " Current version : $curver"
+echo " Obsolete version : $oldver"
+echo ""
+echo "(Press enter to continue, Ctrl-C to abort)"
+read answer
+
+if ! [ -e linux/.config ]; then
+	cp /boot/config-$curver linux/.config
+	fi
+	cd linux
+	make oldconfig
+	make menuconfig
+
+	echo "Compiling kernel $newver"
+	echo "(Press enter to continue, Ctrl-C to abort)"
+	read answer
+
+	make -j8
+	[ -d /lib/modules/$newver ] && rm -r /lib/modules/$newver
+	make -j8 modules_install
+
+	cp arch/x86/boot/bzImage /boot/kernel-$newver
+	cp .config /boot/config-$newver
+	genkernel --install initramfs
+	module-rebuild populate
+	module-rebuild rebuild
+
+	echo "Setting default kernel version to $newver"
+	echo "(Press enter to continue, Ctrl-C to abort)"
+	read answer
+
+	mv -f /boot/config /boot/config.old
+	mv -f /boot/kernel /boot/kernel.old
+	mv -f /boot/initramfs /boot/initramfs.old
+
+	ln -s config-$newver /boot/config
+	ln -s kernel-$newver /boot/kernel
+	ln -s initramfs-genkernel-$(uname -m)-$newver /boot/initramfs
+
+	echo "Removing older version $oldver"
+	echo "(Press enter to continue, Ctrl-C to abort)"
+	read answer
+
+	emerge --unmerge sys-kernel/gentoo-sources:${oldver%-gentoo}
+	rm -r /usr/src/linux-$oldver
+	rm /boot/config-$oldver /boot/kernel-$oldver /boot/initramfs-genkernel-$(uname -m)-$oldver
+	rm -r /lib/modules/$oldver
+
+
