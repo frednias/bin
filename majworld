@@ -1,2 +1,12 @@
-emerge --update --deep --with-bdeps=y  world
+#!/bin/sh
+emerge --sync
+eix-update
+emerge --update --deep --with-bdeps=y  --pretend world
+
+echo
+echo "Emerge World ?"
+echo "(Press enter to continue, Ctrl-C to abort)"
+read answer
+
+emerge --update --deep --with-bdeps=y world
 

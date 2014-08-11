@@ -1,2 +1,2 @@
-ssh root@nias.fr -L 873:rsync2.fr.gentoo.org:873 -N -o ServerAliveInterval=120
+ssh root@nias.fr -L 873:rsync.fr.gentoo.org:873 -N -o ServerAliveInterval=120
 
